@@ -46,9 +46,6 @@ CREATE TABLE facturacion(
 id_factura int AUTO_INCREMENT PRIMARY KEY,
 id_pago int,
 foreign key (id_pago) references pagos(id_pago)
-/*
-FALTA TOTAL_FACTURADO????
-*/
 );
 
 CREATE TABLE pedidos(
@@ -88,8 +85,6 @@ foreign key (id_pedido) references pedidos(id_pedido)
 
 ALTER TABLE productos
 MODIFY COLUMN stock INTEGER;
-
-ALTER TABLE facturacion ADD COLUMN total_facturado DECIMAL(10,2);
 
 ALTER TABLE detalle_pedido CHANGE cantida cantidad INT;
 
@@ -343,37 +338,43 @@ INSERT INTO pagos (fecha_pago, id_eleccion) VALUES
 ('2025-06-30', 2);
 
 
-INSERT INTO facturacion (id_pago, total_facturado) VALUES
-(1, 3200.50),
-(2, 4500.00),
-(3, 1800.75),
-(4, 1200.00),
-(5, 2200.30),
-(6, 3900.10),
-(7, 1500.00),
-(8, 4000.00),
-(9, 3500.00),
-(10, 2800.00),
-(11, 2700.50),
-(12, 3100.75),
-(13, 2300.20),
-(14, 3600.60),
-(15, 4100.00),
-(16, 3800.00),
-(17, 2900.50),
-(18, 3300.40),
-(19, 2400.00),
-(20, 4000.00),
-(21, 3500.00),
-(22, 2600.00),
-(23, 3000.00),
-(24, 3100.00),
-(25, 2800.00),
-(26, 2900.00),
-(27, 2700.00),
-(28, 3100.00),
-(29, 3500.00),
-(30, 3700.00);
+INSERT INTO facturacion (id_pago) VALUES
+(1),
+(2),
+(3),
+(4),
+(5),
+(6),
+(7),
+(8),
+(9),
+(10),
+(11),
+(12),
+(13),
+(14),
+(15),
+(16),
+(17),
+(18),
+(19),
+(20),
+(21),
+(22),
+(23),
+(24),
+(25),
+(26),
+(27),
+(28),
+(29),
+(30),
+(1), -- Esto crea id_factura = 31
+(2),-- = 32
+(3),--  = 33
+(4),
+(1),
+(2);
 
 INSERT INTO pedidos (fecha, id_cliente, id_producto, id_factura) VALUES
 ('2025-06-01', 1, 5, 1),
@@ -405,7 +406,14 @@ INSERT INTO pedidos (fecha, id_cliente, id_producto, id_factura) VALUES
 ('2025-06-27', 27, 31, 27),
 ('2025-06-28', 28, 36, 28),
 ('2025-06-29', 29, 41, 29),
-('2025-06-30', 30, 46, 30);
+('2025-06-30', 30, 46, 30),
+('2025-07-02', 31, 5, 31),
+('2025-07-03', 32, 10, 32),
+('2025-07-04', 33, 15, 33),
+('2025-07-05', 34, 1, 34),
+('2025-07-06', 35, 25, 35),
+('2025-07-07', 36, 46, 36);
+
 
 INSERT INTO detalle_pedido (cantidad, id_producto, id_pedido) VALUES
 (2, 5, 1),
@@ -467,7 +475,13 @@ INSERT INTO detalle_pedido (cantidad, id_producto, id_pedido) VALUES
 (1, 41, 29),
 (2, 44, 29),
 (3, 46, 30),
-(1, 49, 30);
+(1, 49, 30),
+(2, 5, 31),
+(2, 10, 32),
+(2, 15, 33),
+(2, 1, 34),
+(2, 25, 35),
+(2, 46, 36);
 
 
 INSERT INTO proveedores (cuit, direccion) VALUES
@@ -515,3 +529,80 @@ INSERT INTO seguimiento_envio (fecha_seguimiento, estado, id_cliente, id_pedido)
 ('2025-06-30', 'Preparando', 29, 29),
 ('2025-07-01', 'Enviado', 30, 30);
 
+-- EJERCICIO 3
+-- 3 a 
+-- Consulta 1: Usamos dos INNER JOIN para 
+-- mostrar el nombre y apellido del cliente, el nombre del producto y la fecha del pedido
+
+SELECT 
+	c.nombre as nombre_cliente,
+    c.apellido as apellido_cliente,
+    p.nombre_producto,
+    pe.fecha
+FROM pedidos as pe
+	INNER JOIN clientes as c on pe.id_cliente = c.id_cliente 	
+	INNER JOIN productos as p on pe.id_producto = p.id_producto;
+    
+-- Consulta 2 
+-- Seguimiento del estado del envío con nombre del cliente
+SELECT
+    c.nombre as nombre_cliente,
+    c.apellido as apellido_cliente,
+    p.id_pedido,
+    s.estado as estado_pedido
+FROM pedidos as p
+	INNER JOIN clientes as c on p.id_cliente = c.id_cliente
+    INNER JOIN seguimiento_envio  as s on p.id_pedido = s.id_pedido;
+    
+-- EJERCICIO 3
+-- 3 b
+-- Consulta 1
+-- Clientes sin pedidos 
+
+SELECT 
+	c.nombre as nombre_cliente,
+    c.apellido as apellido_cliente,
+    p.id_pedido
+FROM clientes as c
+	LEFT JOIN pedidos as p on c.id_cliente = p.id_cliente
+WHERE p.id_pedido IS NULL;
+
+-- Consulta 2
+SELECT 
+  pr.nombre_producto,
+  p.id_pedido
+FROM productos pr
+	LEFT JOIN pedidos p ON pr.id_producto = p.id_producto;
+    
+-- EJERCICIO 3
+-- 3 c
+-- Consulta 1 Total gastado por cada cliente
+
+SELECT 
+    c.nombre AS nombre_cliente,
+    c.apellido AS apellido_cliente,
+    SUM(f.total_facturado) AS total_gastado
+FROM pedidos AS p
+	INNER JOIN clientes AS c ON p.id_cliente = c.id_cliente
+	INNER JOIN facturacion AS f ON p.id_factura = f.id_factura
+	GROUP BY c.id_cliente;
+
+-- consulta 2 productos más pedidos usando HAVING
+SELECT 
+    pr.nombre_producto,
+    COUNT(p.id_pedido) AS cantidad_pedidos
+FROM productos pr
+JOIN pedidos p ON pr.id_producto = p.id_producto
+GROUP BY pr.id_producto
+HAVING COUNT(p.id_pedido) > 1;
+
+
+
+
+
+	
+    
+
+    
+
+    
