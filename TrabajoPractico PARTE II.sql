@@ -579,13 +579,16 @@ FROM productos pr
 -- Consulta 1 Total gastado por cada cliente
 
 SELECT 
+    c.id_cliente,
     c.nombre AS nombre_cliente,
     c.apellido AS apellido_cliente,
-    SUM(f.total_facturado) AS total_gastado
-FROM pedidos AS p
-	INNER JOIN clientes AS c ON p.id_cliente = c.id_cliente
-	INNER JOIN facturacion AS f ON p.id_factura = f.id_factura
-	GROUP BY c.id_cliente;
+    SUM(dp.cantidad * pr.precio_producto) AS total_gastado
+FROM clientes c
+JOIN pedidos p ON c.id_cliente = p.id_cliente
+JOIN detalle_pedido dp ON p.id_pedido = dp.id_pedido
+JOIN productos pr ON dp.id_producto = pr.id_producto
+GROUP BY c.id_cliente, c.nombre, c.apellido
+ORDER BY total_gastado DESC;
 
 -- consulta 2 productos más pedidos usando HAVING
 SELECT 
