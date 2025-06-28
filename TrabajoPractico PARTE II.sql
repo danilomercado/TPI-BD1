@@ -599,6 +599,44 @@ JOIN pedidos p ON pr.id_producto = p.id_producto
 GROUP BY pr.id_producto
 HAVING COUNT(p.id_pedido) > 1;
 
+-- EJERCICIO 3
+-- 3 d
+-- Consulta 1 
+
+/*consulta 1 clientes que realizaron pedidos de productos mas caros que el precio promedio
+de todos los productos vendidos */
+SELECT 	
+	c.nombre, c.apellido
+FROM clientes AS c
+JOIN pedidos AS p ON c.id_cliente = p.id_cliente
+JOIN productos AS pr ON p.id_producto = pr.id_producto
+WHERE pr.precio_producto > (
+	SELECT AVG(pr2.precio_producto)
+    FROM pedidos AS p2
+    JOIN productos AS pr2 ON p2.id_producto = pr2.id_producto
+);
+
+
+/*Consulta 2- clinetes que hicieron pedidos con mas de 2 productos distintos*/
+
+SELECT
+	pr.nombre_producto,
+    pr.precio_producto
+FROM productos AS pr
+WHERE pr.precio_producto > (
+	SELECT
+		avg(pr2.precio_producto)
+	FROM pedidos AS p2
+    JOIN productos AS pr2 ON p2.id_producto = pr2.id_producto
+    WHERE p2.fecha BETWEEN '2025-06-01' AND '2025-06-30'
+);
+
+
+-- Ejercicio 4
+
+
+
+
 
 
 
