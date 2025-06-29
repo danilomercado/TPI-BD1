@@ -590,7 +590,7 @@ JOIN productos pr ON dp.id_producto = pr.id_producto
 GROUP BY c.id_cliente, c.nombre, c.apellido
 ORDER BY total_gastado DESC;
 
--- consulta 2 productos más pedidos usando HAVING
+-- Consulta 2 productos más pedidos usando HAVING
 SELECT 
     pr.nombre_producto,
     COUNT(p.id_pedido) AS cantidad_pedidos
@@ -601,10 +601,9 @@ HAVING COUNT(p.id_pedido) > 1;
 
 -- EJERCICIO 3
 -- 3 d
--- Consulta 1 
 
-/*consulta 1 clientes que realizaron pedidos de productos mas caros que el precio promedio
-de todos los productos vendidos */
+-- Consulta 1 clientes que realizaron pedidos de productos mas caros que el precio promedio
+-- de todos los productos vendidos
 SELECT 	
 	c.nombre, c.apellido
 FROM clientes AS c
@@ -617,8 +616,7 @@ WHERE pr.precio_producto > (
 );
 
 
-/*Consulta 2- clinetes que hicieron pedidos con mas de 2 productos distintos*/
-
+-- Consulta 2- clinetes que hicieron pedidos con mas de 2 productos distintos
 SELECT
 	pr.nombre_producto,
     pr.precio_producto
@@ -631,19 +629,62 @@ WHERE pr.precio_producto > (
     WHERE p2.fecha BETWEEN '2025-06-01' AND '2025-06-30'
 );
 
+-- EJERCICIO 4 --------------------------------------------------------
+-- Procedimientos almacenados: inserción, actualización y cálculo de total
+-- 1) InsertarNuevoProducto
+-- Descripción: Inserta un nuevo producto en la tabla productos con sus datos básicos.
 
--- Ejercicio 4
+DELIMITER //
+CREATE PROCEDURE InsertarNuevoProducto (
+    IN p_nombre VARCHAR(50),
+    IN p_fecha_vencimiento DATE,
+    IN p_stock INT,
+    IN p_precio DECIMAL(10,2)
+)
+BEGIN
+    INSERT INTO productos (nombre_producto, fecha_vencimiento, stock, precio_producto)
+    VALUES (p_nombre, p_fecha_vencimiento, p_stock, p_precio);
+END //
+
+-- Ejemplo de uso:
+CALL InsertarNuevoProducto('Zapatilla Running', '2027-09-15', 20, 5300.00);
 
 
+-- 2) ActualizarEstadoEnvio
+-- Descripción: Actualiza el estado actual de envío de un pedido en la tabla seguimiento_envio.
+
+DELIMITER //
+CREATE PROCEDURE ActualizarEstadoEnvio (
+    IN p_id_pedido INT,
+    IN p_nuevo_estado VARCHAR(50)
+)
+BEGIN
+    UPDATE seguimiento_envio
+    SET estado = p_nuevo_estado
+    WHERE id_pedido = p_id_pedido;
+END //
+
+-- Ejemplo de uso:
+CALL ActualizarEstadoEnvio(10, 'Pendiente');
 
 
+-- 3) CalcularTotalPedido
+-- Descripción: Calcula el monto total de un pedido sumando los precios unitarios * cantidad 
+-- de cada producto en el detalle del pedido.
 
+DELIMITER //
+CREATE PROCEDURE CalcularTotalPedido (
+    IN p_id_pedido INT,
+    OUT total DECIMAL(10,2)
+)
+BEGIN
+    SELECT SUM(dp.cantidad * pr.precio_producto)
+    INTO total
+    FROM detalle_pedido as dp
+    INNER JOIN productos as pr ON dp.id_producto = pr.id_producto
+    WHERE dp.id_pedido = p_id_pedido;
+END //
 
-
-
-	
-    
-
-    
-
-    
+-- Ejemplo de uso:
+CALL CalcularTotalPedido(5, @total);
+SELECT @total;
